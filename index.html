@@ -1,0 +1,661 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#e8f4ee">
+  <title>專注力小島｜把待辦慢慢變成風景</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #243b36;
+      --muted: #72827c;
+      --paper: #fffefa;
+      --wash: #f3f7f2;
+      --line: #e7ece4;
+      --green: #3c8068;
+      --green-dark: #28644f;
+      --green-soft: #e7f2e9;
+      --coral: #e98e70;
+      --shadow: 0 18px 50px rgba(42, 78, 63, .08);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 10% 0%, rgba(213, 237, 220, .72), transparent 28rem),
+        #f5f8f3;
+      font-family: "Segoe UI", "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    button, input { font: inherit; }
+    button { color: inherit; }
+    .shell { width: min(1160px, calc(100% - 40px)); margin: 0 auto; padding: 32px 0 44px; }
+
+    .topbar { display: flex; justify-content: space-between; align-items: center; gap: 18px; margin-bottom: 26px; }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .brand-mark {
+      display: grid; place-items: center; width: 44px; height: 44px; border-radius: 15px;
+      background: #dcefe1; font-size: 23px; box-shadow: inset 0 0 0 1px rgba(60,128,104,.08);
+    }
+    .brand-name { margin: 0; font-size: 16px; font-weight: 800; letter-spacing: .04em; }
+    .brand-caption { margin: 3px 0 0; color: var(--muted); font-size: 12px; }
+    .date-chip { display: inline-flex; align-items: center; gap: 8px; padding: 9px 13px; border: 1px solid #e5ece3; border-radius: 999px; background: rgba(255,255,255,.7); color: #63746c; font-size: 12px; white-space: nowrap; }
+    .date-dot { width: 7px; height: 7px; border-radius: 50%; background: #7bb88b; }
+
+    .intro { margin: 0 0 22px; }
+    .intro h1 { margin: 0; font-size: clamp(27px, 4vw, 37px); line-height: 1.22; letter-spacing: -.045em; }
+    .intro p { margin: 8px 0 0; color: var(--muted); font-size: 14px; line-height: 1.7; }
+    .dashboard { display: grid; grid-template-columns: minmax(0, 1.18fr) minmax(330px, .82fr); gap: 18px; align-items: stretch; }
+    .card { overflow: hidden; border: 1px solid rgba(226, 234, 224, .9); border-radius: 24px; background: var(--paper); box-shadow: var(--shadow); }
+    .card-pad { padding: 23px; }
+    .card-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+    .eyebrow { margin: 0 0 5px; color: #87968c; font-size: 10px; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; }
+    .card-title { margin: 0; font-size: 19px; letter-spacing: -.025em; }
+    .level-pill { padding: 7px 10px; border: 1px solid #e0eddf; border-radius: 999px; background: #f1f8ef; color: var(--green-dark); font-size: 11px; font-weight: 800; white-space: nowrap; }
+
+    /* Island illustration */
+    .island-card { display: flex; min-height: 402px; flex-direction: column; }
+    .island-card .card-pad { padding-bottom: 4px; }
+    .island-scene {
+      position: relative; isolation: isolate; overflow: hidden; flex: 1; min-height: 268px; margin: 0 14px 14px;
+      border-radius: 19px; background: linear-gradient(180deg, #dff2e8 0%, #c7e9df 48%, #97d3c9 100%);
+    }
+    .sun { position: absolute; top: 13%; right: 15%; width: 42px; height: 42px; border-radius: 50%; background: #ffe7a7; box-shadow: 0 0 0 10px rgba(255, 235, 176, .22), 0 0 38px rgba(255, 232, 170, .45); }
+    .cloud { position: absolute; z-index: 0; width: 74px; height: 19px; border-radius: 50px; background: rgba(255,255,255,.78); filter: drop-shadow(0 5px 4px rgba(92,160,149,.08)); animation: drift 8s ease-in-out infinite alternate; }
+    .cloud::before, .cloud::after { position: absolute; content: ""; bottom: 5px; border-radius: 50%; background: inherit; }
+    .cloud::before { left: 14px; width: 27px; height: 27px; }
+    .cloud::after { left: 33px; width: 20px; height: 20px; }
+    .cloud-one { top: 24%; left: 16%; transform: scale(.82); }
+    .cloud-two { top: 40%; right: 13%; transform: scale(.57); animation-delay: -3s; }
+    .bird { position: absolute; top: 29%; left: 50%; color: rgba(72, 137, 123, .72); font-size: 17px; letter-spacing: 6px; transform: rotate(-8deg); }
+    .water { position: absolute; z-index: 0; right: -8%; bottom: -32%; left: -8%; height: 67%; border-radius: 50% 50% 0 0; background: repeating-linear-gradient(174deg, transparent 0 22px, rgba(255,255,255,.25) 23px 25px, transparent 26px 45px), linear-gradient(180deg, #8bd1c4, #66b7b2); }
+    .water::before { position: absolute; content: ""; top: 21%; left: 6%; width: 88%; height: 1px; background: rgba(255,255,255,.5); box-shadow: 65px 25px rgba(255,255,255,.35), 300px 4px rgba(255,255,255,.3); }
+    .island-base { position: absolute; z-index: 1; bottom: 14%; left: 50%; width: 68%; height: 34%; border-radius: 50%; background: linear-gradient(170deg, #b78155, #82593e 75%); box-shadow: 0 15px 0 rgba(60, 130, 115, .13); transform: translateX(-50%) rotate(-3deg); }
+    .island-land { position: absolute; z-index: 2; bottom: 23%; left: 50%; width: 66%; height: 35%; border-radius: 52% 48% 45% 55% / 60% 57% 43% 40%; background: linear-gradient(165deg, #9bc878 0%, #72ae69 50%, #579866 100%); box-shadow: inset 0 8px 0 rgba(210, 235, 160, .34), inset 0 -9px 0 rgba(54, 130, 91, .16); transform: translateX(-50%) rotate(-3deg); }
+    .island-land::before { position: absolute; content: ""; top: 18%; left: 13%; width: 34%; height: 21%; border-radius: 50%; background: rgba(221, 239, 167, .28); transform: rotate(-12deg); }
+    .shore { position: absolute; z-index: 3; bottom: 19%; left: 50%; width: 65%; height: 9%; border-bottom: 4px dotted rgba(245, 223, 162, .68); border-radius: 50%; transform: translateX(-50%) rotate(-3deg); }
+    .island-object { position: absolute; z-index: 4; display: grid; place-items: center; width: 42px; height: 48px; font-size: 32px; filter: drop-shadow(0 5px 2px rgba(45, 89, 62, .16)); animation: bob 3.5s ease-in-out infinite; }
+    .island-object.sapling { bottom: 42%; left: 46%; font-size: 25px; }
+    .island-object.tree { bottom: 39%; left: 27%; font-size: 37px; animation-delay: -.8s; }
+    .island-object.cabin { bottom: 39%; left: 57%; font-size: 35px; animation-delay: -1.5s; }
+    .island-object.lighthouse { bottom: 39%; left: 70%; font-size: 36px; animation-delay: -.4s; }
+    .island-empty-hint { position: absolute; z-index: 5; right: 12px; bottom: 12px; left: 12px; color: rgba(36, 73, 63, .78); font-size: 11px; text-align: center; text-shadow: 0 1px rgba(255,255,255,.45); }
+    .island-footer { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 0 23px 20px; }
+    .energy-label { color: var(--muted); font-size: 12px; }
+    .energy-value { color: var(--green-dark); font-size: 12px; font-weight: 800; }
+    .progress-track { overflow: hidden; width: 100%; height: 7px; margin-top: 9px; border-radius: 10px; background: #edf1e9; }
+    .progress-fill { height: 100%; border-radius: inherit; background: linear-gradient(90deg, #91c888, #56a681); transition: width .5s ease; }
+    .energy-progress { flex: 1; }
+
+    /* Focus timer */
+    .focus-card { min-height: 402px; }
+    .mode-switch { display: inline-flex; gap: 3px; padding: 4px; border-radius: 12px; background: #f1f4ef; }
+    .mode-btn { padding: 7px 10px; border: 0; border-radius: 9px; background: transparent; color: #78877f; cursor: pointer; font-size: 11px; font-weight: 700; transition: .2s ease; }
+    .mode-btn.active { background: white; color: var(--green-dark); box-shadow: 0 2px 8px rgba(52,82,63,.1); }
+    .timer-wrap { display: grid; place-items: center; padding: 21px 0 14px; }
+    .timer-ring { --timer-progress: 100%; display: grid; position: relative; place-items: center; width: 202px; height: 202px; border-radius: 50%; background: conic-gradient(#6bb18a var(--timer-progress), #e9efe7 0); transition: background .3s linear; }
+    .timer-ring::before { position: absolute; content: ""; inset: 8px; border-radius: inherit; background: var(--paper); }
+    .timer-inner { position: relative; z-index: 1; text-align: center; }
+    .timer-time { margin: 0; font-variant-numeric: tabular-nums; font-size: 47px; font-weight: 750; letter-spacing: -.06em; line-height: 1.05; }
+    .timer-caption { margin: 8px 0 0; color: var(--muted); font-size: 11px; }
+    .focus-task-label { overflow: hidden; margin: 0 0 14px; color: #687a71; font-size: 12px; text-align: center; text-overflow: ellipsis; white-space: nowrap; }
+    .timer-actions { display: flex; justify-content: center; gap: 9px; }
+    .btn { display: inline-flex; justify-content: center; align-items: center; gap: 7px; min-height: 42px; padding: 0 17px; border: 1px solid transparent; border-radius: 13px; cursor: pointer; font-size: 13px; font-weight: 750; transition: transform .15s ease, background .15s ease, box-shadow .15s ease; }
+    .btn:hover { transform: translateY(-1px); }
+    .btn:active { transform: translateY(0); }
+    .btn-primary { background: var(--green); color: white; box-shadow: 0 6px 14px rgba(60,128,104,.17); }
+    .btn-primary:hover { background: var(--green-dark); }
+    .btn-quiet { border-color: var(--line); background: white; color: #65766e; }
+    .btn-quiet:hover { background: #f7f9f5; }
+    .focus-note { margin: 16px 0 0; color: #94a198; font-size: 11px; line-height: 1.6; text-align: center; }
+
+    /* Tasks and daily summary */
+    .tasks-card { min-height: 312px; }
+    .add-form { display: flex; gap: 9px; margin: 18px 0 13px; }
+    .task-input { min-width: 0; flex: 1; height: 43px; padding: 0 13px; border: 1px solid #e5ebe2; border-radius: 12px; outline: none; background: #fbfcf9; color: var(--ink); font-size: 13px; transition: border .2s, box-shadow .2s; }
+    .task-input::placeholder { color: #a3aea6; }
+    .task-input:focus { border-color: #8ab99b; box-shadow: 0 0 0 3px rgba(110,177,138,.13); }
+    .add-btn { width: 44px; min-width: 44px; height: 43px; padding: 0; border-radius: 12px; font-size: 22px; }
+    .filter-row { display: flex; gap: 7px; margin-bottom: 12px; }
+    .filter-btn { padding: 6px 10px; border: 0; border-radius: 9px; background: transparent; color: #849188; cursor: pointer; font-size: 11px; }
+    .filter-btn.active { background: #edf5ec; color: var(--green-dark); font-weight: 800; }
+    .task-list { display: grid; gap: 8px; max-height: 245px; overflow: auto; padding-right: 2px; }
+    .task-row { display: flex; align-items: center; gap: 10px; min-height: 51px; padding: 8px 10px; border: 1px solid #edf0e9; border-radius: 13px; background: #fff; transition: border .2s, background .2s; }
+    .task-row.selected { border-color: #a8ccb0; background: #f7fbf5; }
+    .task-row.done .task-text { color: #a4aea6; text-decoration: line-through; }
+    .task-check { display: grid; place-items: center; width: 21px; height: 21px; flex: 0 0 21px; border: 1.5px solid #cbd6cc; border-radius: 7px; background: white; cursor: pointer; color: white; font-size: 12px; }
+    .task-row.done .task-check { border-color: #6ca77e; background: #6ca77e; }
+    .task-text { overflow: hidden; min-width: 0; flex: 1; color: #43564d; font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+    .task-pick { padding: 5px 8px; border: 0; border-radius: 8px; background: #f2f5f0; color: #6d7e73; cursor: pointer; font-size: 10px; white-space: nowrap; }
+    .task-row.selected .task-pick { background: #e3f0e4; color: var(--green-dark); font-weight: 750; }
+    .task-delete { display: grid; place-items: center; width: 27px; height: 27px; padding: 0; border: 0; border-radius: 8px; background: transparent; color: #a5afa8; cursor: pointer; font-size: 17px; }
+    .task-delete:hover { background: #fbefeb; color: #ce755e; }
+    .empty-state { padding: 25px 12px; color: #98a49b; font-size: 12px; line-height: 1.7; text-align: center; }
+    .trash-section { margin-top: 15px; padding-top: 13px; border-top: 1px solid #edf0e9; }
+    .trash-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .trash-toggle { display: inline-flex; align-items: center; gap: 8px; padding: 5px 2px; border: 0; background: transparent; color: #687a71; cursor: pointer; font-size: 12px; font-weight: 750; }
+    .trash-count { display: grid; place-items: center; min-width: 20px; height: 20px; padding: 0 5px; border-radius: 999px; background: #f0f2ed; color: #78877f; font-size: 10px; }
+    .trash-chevron { color: #9ba69d; transition: transform .2s ease; }
+    .trash-toggle[aria-expanded="true"] .trash-chevron { transform: rotate(180deg); }
+    .clear-trash { padding: 6px 9px; border: 0; border-radius: 8px; background: transparent; color: #b27463; cursor: pointer; font-size: 10px; font-weight: 700; }
+    .clear-trash:hover:not(:disabled) { background: #fbefeb; color: #be5e4b; }
+    .clear-trash:disabled { color: #c3cbc4; cursor: default; }
+    .trash-list { display: grid; gap: 7px; max-height: 190px; overflow: auto; margin-top: 9px; padding-right: 2px; }
+    .trash-list[hidden] { display: none; }
+    .trash-row { display: flex; align-items: center; gap: 9px; min-height: 43px; padding: 7px 9px; border: 1px solid #edf0e9; border-radius: 11px; background: #fafbf8; }
+    .trash-status { flex: 0 0 auto; padding: 4px 7px; border-radius: 7px; background: #f0f2ed; color: #819087; font-size: 9px; }
+    .trash-row.done .trash-status { background: #e8f2e8; color: #568265; }
+    .trash-row.done .task-text { color: #a4aea6; text-decoration: line-through; }
+    .restore-btn { flex: 0 0 auto; padding: 6px 9px; border: 1px solid #e2eae0; border-radius: 8px; background: white; color: #567462; cursor: pointer; font-size: 10px; font-weight: 750; }
+    .restore-btn:hover { border-color: #b8d2b7; background: #f2f8ef; }
+
+    .summary-card { min-height: 312px; background: linear-gradient(155deg, #fffefa 0%, #f6faf2 100%); }
+    .today-counts { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 19px 0 20px; }
+    .count-box { padding: 15px; border: 1px solid #e9eee5; border-radius: 15px; background: rgba(255,255,255,.8); }
+    .count-icon { font-size: 17px; }
+    .count-number { display: block; margin-top: 8px; font-size: 26px; font-weight: 800; letter-spacing: -.04em; }
+    .count-caption { display: block; margin-top: 2px; color: #849188; font-size: 10px; }
+    .next-unlock { display: flex; align-items: center; gap: 12px; padding: 14px; border: 1px dashed #d9e7d6; border-radius: 15px; background: rgba(255,255,255,.56); }
+    .unlock-icon { display: grid; place-items: center; width: 41px; height: 41px; flex: 0 0 41px; border-radius: 13px; background: #edf5e8; font-size: 22px; }
+    .unlock-title { margin: 0; font-size: 12px; font-weight: 800; }
+    .unlock-copy { margin: 4px 0 0; color: #849188; font-size: 10px; line-height: 1.5; }
+    .save-note { margin: 15px 0 0; color: #9aa59c; font-size: 10px; text-align: center; }
+    .toast { position: fixed; z-index: 10; right: 22px; bottom: 22px; max-width: min(360px, calc(100vw - 44px)); padding: 12px 16px; border: 1px solid rgba(255,255,255,.15); border-radius: 13px; background: #294d40; color: white; box-shadow: 0 10px 30px rgba(30,66,51,.2); font-size: 12px; opacity: 0; pointer-events: none; transform: translateY(10px); transition: .25s ease; }
+    .toast.show { opacity: 1; transform: translateY(0); }
+    .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; clip-path: inset(50%); }
+
+    @keyframes bob { 0%, 100% { translate: 0 0; } 50% { translate: 0 -5px; } }
+    @keyframes drift { from { margin-left: -3px; } to { margin-left: 10px; } }
+    @media (max-width: 780px) {
+      .shell { width: min(620px, calc(100% - 28px)); padding-top: 22px; }
+      .dashboard { grid-template-columns: 1fr; }
+      .island-card { min-height: 380px; }
+      .focus-card { min-height: auto; }
+      .tasks-card, .summary-card { min-height: auto; }
+    }
+    @media (max-width: 420px) {
+      .shell { width: calc(100% - 22px); }
+      .topbar { margin-bottom: 22px; }
+      .date-chip { padding: 8px 10px; font-size: 10px; }
+      .brand-caption { font-size: 10px; }
+      .card-pad { padding: 19px; }
+      .island-scene { min-height: 235px; margin-right: 10px; margin-left: 10px; }
+      .island-card { min-height: 352px; }
+      .timer-ring { width: 185px; height: 185px; }
+      .task-pick { padding: 5px 6px; }
+      .task-row { gap: 7px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">🌿</div>
+        <div>
+          <p class="brand-name">專注力小島</p>
+          <p class="brand-caption">把待辦慢慢變成風景</p>
+        </div>
+      </div>
+      <div class="date-chip"><span class="date-dot" aria-hidden="true"></span><span id="today-date"></span></div>
+    </header>
+
+    <div class="intro">
+      <h1>今天想讓小島長出什麼？</h1>
+      <p>挑一件小事，給自己一段專注時間。每次完成，島上就會多一點生氣。</p>
+    </div>
+
+    <main class="dashboard">
+      <section class="card island-card" aria-labelledby="island-heading">
+        <div class="card-pad">
+          <div class="card-head">
+            <div>
+              <p class="eyebrow">YOUR LITTLE WORLD</p>
+              <h2 class="card-title" id="island-heading">我的專注小島</h2>
+            </div>
+            <span class="level-pill" id="level-pill">島嶼 Lv. 1</span>
+          </div>
+        </div>
+        <div class="island-scene" role="img" aria-label="一座漂浮在海面上的綠色小島">
+          <div class="sun"></div><div class="cloud cloud-one"></div><div class="cloud cloud-two"></div><div class="bird" aria-hidden="true">⌁ ⌁</div>
+          <div class="water"></div><div class="island-base"></div><div class="island-land"></div><div class="shore"></div>
+          <div id="island-objects"></div>
+          <p class="island-empty-hint" id="island-hint">完成第一段專注，種下島上的第一株新芽</p>
+        </div>
+        <div class="island-footer">
+          <div class="energy-progress">
+            <div class="card-head"><span class="energy-label" id="energy-label">下一等級的島嶼能量</span><span class="energy-value" id="energy-value">0 / 3</span></div>
+            <div class="progress-track" role="progressbar" aria-label="升級進度" aria-valuemin="0" aria-valuemax="3" aria-valuenow="0"><div class="progress-fill" id="island-progress" style="width:0%"></div></div>
+          </div>
+          <span aria-hidden="true" style="font-size:20px">✨</span>
+        </div>
+      </section>
+
+      <section class="card focus-card card-pad" aria-labelledby="focus-heading">
+        <div class="card-head">
+          <div>
+            <p class="eyebrow">SLOW DOWN, FOCUS</p>
+            <h2 class="card-title" id="focus-heading">專注計時</h2>
+          </div>
+          <div class="mode-switch" role="group" aria-label="計時模式">
+            <button class="mode-btn active" type="button" data-mode="focus" aria-pressed="true">專注</button>
+            <button class="mode-btn" type="button" data-mode="break" aria-pressed="false">休息</button>
+          </div>
+        </div>
+        <div class="timer-wrap">
+          <div class="timer-ring" id="timer-ring">
+            <div class="timer-inner">
+              <p class="timer-time" id="timer-display" aria-live="off">25:00</p>
+              <p class="timer-caption" id="timer-caption">一小段專心，就很棒了</p>
+            </div>
+          </div>
+        </div>
+        <p class="focus-task-label" id="focus-task-label">目前專注：尚未選擇任務</p>
+        <div class="timer-actions">
+          <button class="btn btn-primary" type="button" id="timer-toggle"><span aria-hidden="true">▶</span> 開始專注</button>
+          <button class="btn btn-quiet" type="button" id="timer-reset" aria-label="重設計時器">重設</button>
+        </div>
+        <p class="focus-note">完成 25 分鐘專注，小島就會獲得 1 點能量。<br>中途暫停也沒關係，準備好再繼續。</p>
+      </section>
+
+      <section class="card tasks-card card-pad" aria-labelledby="tasks-heading">
+        <div class="card-head">
+          <div>
+            <p class="eyebrow">ONE THING AT A TIME</p>
+            <h2 class="card-title" id="tasks-heading">今日待辦</h2>
+          </div>
+          <span class="level-pill" id="task-count-pill">0 件待辦</span>
+        </div>
+        <form class="add-form" id="task-form">
+          <label class="sr-only" for="task-input">新增一件待辦</label>
+          <input class="task-input" id="task-input" type="text" maxlength="80" placeholder="寫下一件想完成的小事…" autocomplete="off">
+          <button class="btn btn-primary add-btn" type="submit" aria-label="新增待辦">+</button>
+        </form>
+        <div class="filter-row" role="group" aria-label="篩選待辦">
+          <button class="filter-btn active" type="button" data-filter="all" aria-pressed="true">全部</button>
+          <button class="filter-btn" type="button" data-filter="active" aria-pressed="false">未完成</button>
+          <button class="filter-btn" type="button" data-filter="done" aria-pressed="false">已完成</button>
+        </div>
+        <div class="task-list" id="task-list" aria-live="polite"></div>
+        <div class="trash-section">
+          <div class="trash-toolbar">
+            <button class="trash-toggle" id="trash-toggle" type="button" aria-expanded="false" aria-controls="trash-list">
+              <span aria-hidden="true">🗑️</span><span>垃圾桶</span><span class="trash-count" id="trash-count">0</span><span class="trash-chevron" aria-hidden="true">⌄</span>
+            </button>
+            <button class="clear-trash" id="clear-trash" type="button" disabled>清空垃圾桶</button>
+          </div>
+          <div class="trash-list" id="trash-list" aria-live="polite" hidden></div>
+        </div>
+      </section>
+
+      <aside class="card summary-card card-pad" aria-labelledby="summary-heading">
+        <div class="card-head">
+          <div>
+            <p class="eyebrow">A LITTLE PROGRESS</p>
+            <h2 class="card-title" id="summary-heading">今日小記</h2>
+          </div>
+          <span aria-hidden="true" style="font-size:22px">☀️</span>
+        </div>
+        <div class="today-counts">
+          <div class="count-box"><span class="count-icon" aria-hidden="true">✅</span><strong class="count-number" id="completed-count">0</strong><span class="count-caption">完成待辦</span></div>
+          <div class="count-box"><span class="count-icon" aria-hidden="true">🍅</span><strong class="count-number" id="sessions-count">0</strong><span class="count-caption">專注時段</span></div>
+        </div>
+        <div class="next-unlock">
+          <div class="unlock-icon" id="unlock-icon" aria-hidden="true">🌱</div>
+          <div><p class="unlock-title" id="unlock-title">下一個小島驚喜</p><p class="unlock-copy" id="unlock-copy">再完成 1 段專注，就能種下第一株新芽。</p></div>
+        </div>
+        <p class="save-note">你的清單和小島進度會自動保存在這台裝置</p>
+      </aside>
+    </main>
+  </div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    (() => {
+      const STORAGE_KEY = "focus-island-v1";
+      const FOCUS_SECONDS = 25 * 60;
+      const BREAK_SECONDS = 5 * 60;
+      const DECORATIONS = [
+        { at: 1, name: "新芽", emoji: "🌱", className: "sapling" },
+        { at: 3, name: "大樹", emoji: "🌳", className: "tree" },
+        { at: 5, name: "小木屋", emoji: "🏡", className: "cabin" },
+        { at: 8, name: "燈塔", emoji: "🗼", className: "lighthouse" }
+      ];
+      const todayKey = new Date().toLocaleDateString("sv-SE");
+      const defaultState = () => ({ tasks: [], trash: [], selectedTaskId: null, islandEnergy: 0, focusSessionsTotal: 0, focusDate: todayKey, focusSessionsToday: 0, completedDate: todayKey, completedTodayCount: 0 });
+
+      function loadState() {
+        try {
+          const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
+          if (!saved || typeof saved !== "object") return defaultState();
+          const state = { ...defaultState(), ...saved };
+          if (!Array.isArray(state.tasks)) state.tasks = [];
+          if (!Array.isArray(state.trash)) state.trash = [];
+          if (!Number.isFinite(state.islandEnergy) || state.islandEnergy < 0) state.islandEnergy = 0;
+          if (!Number.isFinite(state.focusSessionsTotal) || state.focusSessionsTotal < 0) state.focusSessionsTotal = 0;
+          if (state.focusDate !== todayKey) { state.focusDate = todayKey; state.focusSessionsToday = 0; }
+          if (!Number.isFinite(state.focusSessionsToday) || state.focusSessionsToday < 0) state.focusSessionsToday = 0;
+          if (state.completedDate !== todayKey) { state.completedDate = todayKey; state.completedTodayCount = 0; }
+          else if (!Number.isFinite(saved.completedTodayCount) || saved.completedTodayCount < 0) {
+            state.completedTodayCount = [...state.tasks, ...state.trash].filter((task) => task.completedAt === todayKey).length;
+          }
+          return state;
+        } catch { return defaultState(); }
+      }
+
+      let state = loadState();
+      let currentFilter = "all";
+      let timerMode = "focus";
+      let remainingSeconds = FOCUS_SECONDS;
+      let timerInterval = null;
+      let toastTimeout = null;
+
+      const $ = (selector) => document.querySelector(selector);
+      const taskList = $("#task-list");
+      const timerDisplay = $("#timer-display");
+      const timerRing = $("#timer-ring");
+      const timerToggle = $("#timer-toggle");
+
+      function saveState() {
+        try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch { /* App remains usable if storage is unavailable. */ }
+      }
+
+      function showToast(message) {
+        const toast = $("#toast");
+        toast.textContent = message;
+        toast.classList.add("show");
+        clearTimeout(toastTimeout);
+        toastTimeout = setTimeout(() => toast.classList.remove("show"), 2800);
+      }
+
+      function activeTask() { return state.tasks.find((task) => task.id === state.selectedTaskId && !task.completed); }
+      function ensureSelectedTask() {
+        if (!activeTask()) state.selectedTaskId = state.tasks.find((task) => !task.completed)?.id || null;
+      }
+
+      function renderTasks() {
+        ensureSelectedTask();
+        taskList.replaceChildren();
+        const visible = state.tasks.filter((task) => currentFilter === "all" || (currentFilter === "active" ? !task.completed : task.completed));
+        if (!visible.length) {
+          const empty = document.createElement("div");
+          empty.className = "empty-state";
+          empty.textContent = currentFilter === "done" ? "還沒有完成的待辦。完成一件小事，來這裡看看吧！" : currentFilter === "active" ? "太好了，現在沒有未完成的待辦。" : "先寫下一件小事，為今天開個好頭吧。";
+          taskList.append(empty);
+        }
+        visible.forEach((task) => {
+          const row = document.createElement("div");
+          row.className = `task-row${task.completed ? " done" : ""}${task.id === state.selectedTaskId ? " selected" : ""}`;
+          const check = document.createElement("button");
+          check.type = "button";
+          check.className = "task-check";
+          check.setAttribute("aria-label", task.completed ? `重新開啟：${task.text}` : `完成：${task.text}`);
+          check.setAttribute("aria-pressed", String(task.completed));
+          check.textContent = task.completed ? "✓" : "";
+          check.addEventListener("click", () => toggleTask(task.id));
+
+          const text = document.createElement("span");
+          text.className = "task-text";
+          text.textContent = task.text;
+          text.title = task.text;
+
+          const pick = document.createElement("button");
+          pick.type = "button";
+          pick.className = "task-pick";
+          pick.textContent = task.completed ? "已完成" : task.id === state.selectedTaskId ? "正在專注" : "專注這項";
+          pick.disabled = task.completed;
+          pick.setAttribute("aria-label", `將「${task.text}」設為目前專注任務`);
+          pick.addEventListener("click", () => { state.selectedTaskId = task.id; saveState(); render(); });
+
+          const remove = document.createElement("button");
+          remove.type = "button";
+          remove.className = "task-delete";
+          remove.textContent = "×";
+          remove.setAttribute("aria-label", `移至垃圾桶：${task.text}`);
+          remove.addEventListener("click", () => moveToTrash(task.id));
+          row.append(check, text, pick, remove);
+          taskList.append(row);
+        });
+        const unfinished = state.tasks.filter((task) => !task.completed).length;
+        $("#task-count-pill").textContent = `${unfinished} 件待辦`;
+        $("#completed-count").textContent = state.completedTodayCount;
+        $("#focus-task-label").textContent = activeTask() ? `目前專注：${activeTask().text}` : "目前專注：尚未選擇任務";
+      }
+
+      function renderTrash() {
+        const trashList = $("#trash-list");
+        trashList.replaceChildren();
+        $("#trash-count").textContent = state.trash.length;
+        $("#clear-trash").disabled = state.trash.length === 0;
+        if (!state.trash.length) {
+          const empty = document.createElement("div");
+          empty.className = "empty-state";
+          empty.textContent = "垃圾桶是空的。移除的待辦會放在這裡。";
+          trashList.append(empty);
+          return;
+        }
+        state.trash.forEach((task) => {
+          const row = document.createElement("div");
+          row.className = `trash-row${task.completed ? " done" : ""}`;
+          const status = document.createElement("span");
+          status.className = "trash-status";
+          status.textContent = task.completed ? "已完成" : "未完成";
+          const text = document.createElement("span");
+          text.className = "task-text";
+          text.textContent = task.text;
+          text.title = task.text;
+          const restore = document.createElement("button");
+          restore.type = "button";
+          restore.className = "restore-btn";
+          restore.textContent = "還原";
+          restore.setAttribute("aria-label", `還原待辦：${task.text}`);
+          restore.addEventListener("click", () => restoreTask(task.id));
+          row.append(status, text, restore);
+          trashList.append(row);
+        });
+      }
+
+      function toggleTask(id) {
+        const task = state.tasks.find((item) => item.id === id);
+        if (!task) return;
+        const wasCompleted = task.completed;
+        task.completed = !task.completed;
+        if (!wasCompleted && task.completed) state.completedTodayCount += 1;
+        if (wasCompleted && task.completedAt === todayKey) state.completedTodayCount = Math.max(0, state.completedTodayCount - 1);
+        task.completedAt = task.completed ? todayKey : null;
+        if (task.completed && state.selectedTaskId === id) state.selectedTaskId = null;
+        ensureSelectedTask();
+        saveState();
+        render();
+      }
+
+      function moveToTrash(id) {
+        const index = state.tasks.findIndex((task) => task.id === id);
+        if (index < 0) return;
+        const [task] = state.tasks.splice(index, 1);
+        if (state.selectedTaskId === id) {
+          if (timerMode === "focus" && timerInterval) {
+            stopTimer();
+            remainingSeconds = FOCUS_SECONDS;
+          }
+          state.selectedTaskId = null;
+          ensureSelectedTask();
+        }
+        state.trash.unshift(task);
+        saveState();
+        render();
+        showToast("已移入垃圾桶，可隨時還原。");
+      }
+
+      function restoreTask(id) {
+        const index = state.trash.findIndex((task) => task.id === id);
+        if (index < 0) return;
+        const [task] = state.trash.splice(index, 1);
+        state.tasks.unshift(task);
+        if (!task.completed && !activeTask()) state.selectedTaskId = task.id;
+        ensureSelectedTask();
+        saveState();
+        render();
+        showToast("待辦已還原，原本的完成狀態也保留了。");
+      }
+
+      function clearTrash() {
+        if (!state.trash.length) return;
+        if (!window.confirm(`要永久刪除垃圾桶中的 ${state.trash.length} 項待辦嗎？`)) return;
+        state.trash = [];
+        saveState();
+        render();
+        showToast("垃圾桶已清空。");
+      }
+
+      function renderIsland() {
+        const sessions = state.focusSessionsTotal;
+        const level = Math.floor(sessions / 3) + 1;
+        const progress = sessions % 3;
+        $("#level-pill").textContent = `島嶼 Lv. ${level}`;
+        $("#energy-value").textContent = `${progress} / 3`;
+        $("#island-progress").style.width = `${(progress / 3) * 100}%`;
+        $("#island-progress").parentElement.setAttribute("aria-valuenow", String(progress));
+        $("#island-hint").hidden = sessions > 0;
+        const objects = $("#island-objects");
+        objects.replaceChildren();
+        DECORATIONS.filter((item) => sessions >= item.at).forEach((item) => {
+          const object = document.createElement("span");
+          object.className = `island-object ${item.className}`;
+          object.textContent = item.emoji;
+          object.title = item.name;
+          object.setAttribute("aria-label", item.name);
+          objects.append(object);
+        });
+        $("#sessions-count").textContent = state.focusSessionsToday;
+        const next = DECORATIONS.find((item) => sessions < item.at);
+        if (next) {
+          $("#unlock-icon").textContent = next.emoji;
+          $("#unlock-title").textContent = `下一個小島驚喜：${next.name}`;
+          const needed = next.at - sessions;
+          $("#unlock-copy").textContent = `再完成 ${needed} 段專注，就能解鎖${next.name}。`;
+        } else {
+          $("#unlock-icon").textContent = "🌟";
+          $("#unlock-title").textContent = "小島已經熱鬧起來了！";
+          $("#unlock-copy").textContent = "繼續專注，讓你的島嶼慢慢變得更豐富。";
+        }
+      }
+
+      function render() {
+        renderTasks();
+        renderTrash();
+        renderIsland();
+        updateTimerDisplay();
+      }
+
+      function formatTime(seconds) {
+        const minutes = Math.floor(seconds / 60).toString().padStart(2, "0");
+        const secs = (seconds % 60).toString().padStart(2, "0");
+        return `${minutes}:${secs}`;
+      }
+
+      function updateTimerDisplay() {
+        const duration = timerMode === "focus" ? FOCUS_SECONDS : BREAK_SECONDS;
+        timerDisplay.textContent = formatTime(remainingSeconds);
+        timerRing.style.setProperty("--timer-progress", `${Math.max(0, (remainingSeconds / duration) * 100)}%`);
+        $("#timer-caption").textContent = timerMode === "focus" ? "一小段專心，就很棒了" : "放鬆一下，補充能量";
+        timerToggle.innerHTML = timerInterval ? '<span aria-hidden="true">Ⅱ</span> 暫停' : `<span aria-hidden="true">▶</span> ${timerMode === "focus" ? "開始專注" : "開始休息"}`;
+      }
+
+      function setMode(mode) {
+        stopTimer();
+        timerMode = mode;
+        remainingSeconds = mode === "focus" ? FOCUS_SECONDS : BREAK_SECONDS;
+        document.querySelectorAll(".mode-btn").forEach((button) => {
+          const active = button.dataset.mode === mode;
+          button.classList.toggle("active", active);
+          button.setAttribute("aria-pressed", String(active));
+        });
+        updateTimerDisplay();
+      }
+
+      function stopTimer() {
+        if (timerInterval) clearInterval(timerInterval);
+        timerInterval = null;
+        updateTimerDisplay();
+      }
+
+      function finishTimer() {
+        stopTimer();
+        if (timerMode === "focus") {
+          state.islandEnergy += 1;
+          state.focusSessionsTotal += 1;
+          if (state.focusDate !== todayKey) { state.focusDate = todayKey; state.focusSessionsToday = 0; }
+          state.focusSessionsToday += 1;
+          saveState();
+          showToast("專注完成！小島收到 1 點能量 ✨");
+          setMode("break");
+          render();
+        } else {
+          showToast("休息結束，準備好再開啟下一段專注吧！");
+          setMode("focus");
+        }
+      }
+
+      function toggleTimer() {
+        if (timerInterval) { stopTimer(); return; }
+        if (timerMode === "focus" && !activeTask()) {
+          showToast("先新增或選擇一件待辦，再開始專注吧。");
+          $("#task-input").focus();
+          return;
+        }
+        timerInterval = setInterval(() => {
+          remainingSeconds -= 1;
+          updateTimerDisplay();
+          if (remainingSeconds <= 0) finishTimer();
+        }, 1000);
+        updateTimerDisplay();
+      }
+
+      $("#task-form").addEventListener("submit", (event) => {
+        event.preventDefault();
+        const input = $("#task-input");
+        const text = input.value.trim();
+        if (!text) { input.focus(); return; }
+        const id = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+        state.tasks.unshift({ id, text, completed: false, completedAt: null });
+        if (!activeTask()) state.selectedTaskId = id;
+        input.value = "";
+        saveState();
+        render();
+        input.focus();
+      });
+
+      document.querySelectorAll(".filter-btn").forEach((button) => button.addEventListener("click", () => {
+        currentFilter = button.dataset.filter;
+        document.querySelectorAll(".filter-btn").forEach((item) => {
+          const active = item === button;
+          item.classList.toggle("active", active);
+          item.setAttribute("aria-pressed", String(active));
+        });
+        renderTasks();
+      }));
+      $("#trash-toggle").addEventListener("click", (event) => {
+        const button = event.currentTarget;
+        const expanded = button.getAttribute("aria-expanded") === "true";
+        button.setAttribute("aria-expanded", String(!expanded));
+        $("#trash-list").hidden = expanded;
+      });
+      $("#clear-trash").addEventListener("click", clearTrash);
+      document.querySelectorAll(".mode-btn").forEach((button) => button.addEventListener("click", () => setMode(button.dataset.mode)));
+      timerToggle.addEventListener("click", toggleTimer);
+      $("#timer-reset").addEventListener("click", () => { stopTimer(); remainingSeconds = timerMode === "focus" ? FOCUS_SECONDS : BREAK_SECONDS; updateTimerDisplay(); });
+
+      $("#today-date").textContent = new Intl.DateTimeFormat("zh-TW", { year: "numeric", month: "long", day: "numeric", weekday: "long" }).format(new Date());
+      render();
+    })();
+  </script>
+</body>
+</html>
